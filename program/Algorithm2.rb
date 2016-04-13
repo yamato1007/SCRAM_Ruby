@@ -22,13 +22,23 @@ class Algorithm2
         end
         lastDistance = -1
         rank = currentIndex = 0
+        repetition = 1
+        power2 = 2
         edgesSorted.each do |e|
             if e.distance > lastDistance then
                 rank = currentIndex
                 lastDistance = e.distance
+                repetition = 1
+                power2 = 2
+                currentIndex += 1
+            else 
+                repetition += 1
+                if repetition >= power2
+                    currentIndex += 1
+                    power2 *= 2
+                end
             end
             e.distance = 2**rank
-            currentIndex += 1
         end
         match = Hungarian.new(SCRAM::edgesToMatrix(@robots,@positions,@edges)).calc.map{|k,v|[@robots[k],@positions[v]]}.to_h
         puts "\n\nMatching"
