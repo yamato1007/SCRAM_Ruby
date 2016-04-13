@@ -41,6 +41,9 @@ class RCPoint
         @rc = rc
         @n = n
     end
+    def to_s
+        "(" << @rc.to_s << ":" << @n.to_s << ")"
+    end
 end
 class Array
     def reduce1(&block)
@@ -139,15 +142,29 @@ class Matrix
             nil
         end 
     end
+    def to_s
+        length = self.reduce(0) do |acc, e|
+            e.nil? || acc >= e.to_s.length ? acc : e.to_s.length
+        end
+        self.to_a.reduce(""){|acc,l|
+            acc << (l.reduce("[") do |acc,e|
+                str = (e.nil? ? "" : e.to_s)
+                lengthDist = length - str.length 
+                acc << str << " "*lengthDist << ", "
+            end).chop.chop << "]\n"
+        } << "\n"
+    end
 end
 
 class Hungarian
+    attr_reader :sumCost
     def initialize(matrix)
-        @matrix = matrix
+        @matrix = @matrixOrigin = matrix
+        @sumCost = nil
     end
 
     def calc
-        puts "\n\n--------------------"
+        puts "--------------------"
         puts "-----Hungarian------"
         puts "--------------------\n"
         @matrix = makeZero(@matrix)
@@ -162,17 +179,14 @@ class Hungarian
     def makeZero(matrix)
         puts "\n\n--------makeZero--------"
         matrix = matrix.clone
-        matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-        puts "\n"
+        puts matrix
         makeZeroFunc = lambda do |list|
             list.map {|e| e - list.min}
         end
         matrix = matrix.mapRows &makeZeroFunc
-        matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-        puts "\n"
+        puts matrix
         matrix = matrix.mapColumns &makeZeroFunc 
-        matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-        puts "\n"
+        puts matrix
         matrix
     end
 
@@ -180,29 +194,26 @@ class Hungarian
         puts "\n\n--------moreMakeZero--------"
         matrix = matrixOrigin.clone
         delTimes = matrix.clone.map {|e| 0}
-
-        matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-        puts "\n"
-
+        puts matrix 
         while matrix.any? {|e| e == 0} do
             rcPoint = matrix.getRowColumnPoint do |acc,l|
                 l.count(0) > acc.count(0) || (l.count(0) == acc.count(0) && l.count(nil) > acc.count(nil))
             end
             matrix = matrix.mapLine(rcPoint) {|e| nil}
-            matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-            puts "\n"
             delTimes = delTimes.mapLine(rcPoint) {|n| n+1}
+            puts "Hide : " << rcPoint.to_s
+            puts matrix
         end
-        puts "\n"
-        matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-        puts "\n"
         min = matrix.min
         matrix = matrix.map{|e| e - min}
-        matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-        puts "\n"
+        puts "subtruction : -" << min.to_s
+        puts matrix
         matrix = matrix.zipWith(matrixOrigin){|x,y| x || y}.zipWith(delTimes){|x,t| t == 2 ? x + min : x} 
-        matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-        puts "\n"
+        puts "restoration" 
+        puts matrix
+        matrix = matrix.zipWith(delTimes){|x,t| t == 2 ? x + min : x} 
+        puts "addition : +" << min.to_s
+        puts matrix
         matrix
     end
 
@@ -212,10 +223,10 @@ class Hungarian
         matrix = matrix.clone
         match = {}
         size = matrix.row_size
+        @sumCost = 0
 
         matrix = matrix.map {|e| e == 0 ? e : nil}
-        matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-        puts "\n"
+        puts matrix
         size.times do 
             if(matrix.all? {|e| e == nil})
                 return nil
@@ -226,11 +237,11 @@ class Hungarian
                 accZero == 0 || (lZero != 0 && lZero < accZero)
             end
             point = matrix.index_with_RCPoint(rcPoint,0) 
-            puts point
+            puts "Matching : " << point.to_s
             match[point.row] = point.column
+            @sumCost += @matrixOrigin[point.row,point.column]
             matrix = matrix.mapCrossLine(point) {|e| nil}
-            matrix.to_a.map{|l|l.map{|e|e.nil? ? '' : e}}.each {|l| p l}
-            puts "\n"
+            puts matrix
         end
         match = match.sort{|(k1,v1),(k2,v2)| k1 <=> k2}
         match.each {|k,v| puts (k.to_s + " -> " + v.to_s)} 
@@ -247,6 +258,8 @@ end
 #require "./scram"
 #robots = [[1,1],[0,1],[4,0],[6,0],[0,2],[3,2]].map{|e|Point.new(e[0],e[1])}.map{|e|Agent.new e}
 #positions = [[0,0],[1,0],[4,2],[5,2],[6,2],[5,1]].map{|e|Point.new(e[0],e[1])}.map{|e|Position.new e}
-#matrix = SCRAM::edgesToMatrix(robots,positions)
+#matrix = SCRAM::nodesToMatrix(robots,positions)
 #hungarian = Hungarian.new(matrix)
-#p hungarian.calc
+#hungarian.calc.each{|k,v|puts Edge.new(robots[k],positions[v])}
+#p hungarian.sumCost
+

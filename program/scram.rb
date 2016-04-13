@@ -76,12 +76,27 @@ module SCRAM
         matrix
     end
     def self.edgesToMatrix(robots,positions,edges,&edgesFilter)
-        matrix = Matrix.zero(robots.length)
-        ri = robots.map.with_index{|e,i|[e,i]}.to_h
-        pi = positions.map.with_index{|e,i|[e,i]}.to_h
-        edges.each{|e|matrix[ri[e.start],pi[e.end]] = e.distance}
+        matrix = self.edgesWithDistFuncToMatrix(robots,positions,edges,&:distance)
         unless edgesFilter.nil? then
             matrix = matrix.map { |d| (edgesFilter.call d) ? d : nil }
+        end
+        matrix
+    end
+    def self.distFuncToMatrix(robots,positions,&distFunc)
+        matrix = Matrix.zero(robots.length)
+        (0...robots.length).each do |i|
+            (0...positions.length).each do |j|
+                matrix[i,j] = distFunc.call(robots[i],positions[j])
+            end
+        end
+        matrix
+    end
+    def self.edgesWithDistFuncToMatrix(robots,positions,edges,&distFunc)
+        matrix = Matrix.zero(robots.length).map{|e|nil}
+        ri = robots.map.with_index{|e,i|[e,i]}.to_h
+        pi = positions.map.with_index{|e,i|[e,i]}.to_h
+        edges.each do |e|
+            matrix[ri[e.start],pi[e.end]] = distFunc.call(e)
         end
         matrix
     end

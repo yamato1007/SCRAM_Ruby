@@ -14,6 +14,9 @@ class Algorithm2
         end)
     end
     def calc
+        puts "---------------------"
+        puts "-----Algorithm2------"
+        puts "---------------------\n"
         edgesSorted = @edges.sort do |e1,e2|
             (e1.distance) <=> (e2.distance)
         end
@@ -38,6 +41,4 @@ end
 ###Test Algorithm2###
 #robots = [[1,1],[0,1],[4,0],[6,0],[0,2],[3,2]].map{|e|Point.new(e[0],e[1])}.map{|e|Agent.new e}
 #positions = [[0,0],[1,0],[4,2],[5,2],[6,2],[5,1]].map{|e|Point.new(e[0],e[1])}.map{|e|Position.new e}
-#robots = [[1,2],[-1,5],[3,2]].map{|x|Point.new(x[0],x[1])}.map{|x| Agent.new x}
-#positions = [[5,3],[0,4],[1,-1]].map{|x|Point.new(x[0],x[1])}.map{|x| Position.new x}
 #Algorithm2.new(robots,positions).calc

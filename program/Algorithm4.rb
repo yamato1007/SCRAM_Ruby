@@ -2,17 +2,17 @@ require "./util.rb"
 require "./scram.rb"
 
 class Algorithm4
-    def initialize (r,p)
+    def initialize (r,p,edges = nil)
         #エージェント群
         @robots = r
         #タスク群
         @positions = p
         #エージェントからタスクへの全ての組み合わせ
-        @edges = Util::flatten ( @robots.map do |a|
+        @edges = !edges.nil? ? edges.map(&:clone) : (Util::flatten (@robots.map do |a|
             @positions.map do |p|
                 Edge.new(a,p)
             end
-        end)
+        end))
         #タスク割り当て済みのエージェントの集合
         @matchedRobots = []
         #割当を許されたタスク割当
