@@ -2,7 +2,6 @@ require "./util.rb"
 require "./scram.rb"
 
 class Algorithm4
-
     def initialize (r,p)
         #エージェント群
         @robots = r
@@ -20,24 +19,20 @@ class Algorithm4
         @allowedEdges = []
     end
 
-
     #許された割当の中で、
     #タスクNode、もしくはnilを返しうる
     def flood(curNode, prevNode)
         curNode.visited = true
         curNode.previous = prevNode
 
-        print "Flood curNode"
-        puts curNode
-
         #カレントノードがタスクであり、許されている割当ての中でカレントノードから出発する割当がなければ(カレントノードがすでに割り当て済みのタスクでなければ)、カレントノードを返す
         if (@positions.include? curNode) && @allowedEdges.all? {|e| e.start != curNode} then
             return curNode
         end
 
-        #カレントノードから出発し、到達先が未到達であるような、許された割当があれば、コストが小さい順にその全てについて、
+        #カレントノードから出発し、到達先が未到達であるような、許された割当があれば、コストが大きい順にその全てについて、
         @allowedEdges.select do |e|
-            (e.start == curNode) && !(e.end.visited )
+            e.start == curNode && !e.end.visited
         end.each do |e|
             val = flood(e.end,e.start)
             if val != nil then
@@ -45,74 +40,84 @@ class Algorithm4
             end
         end
 
-        #カレントノードから出発する割当がどれも許されていない
-        #カレントノードから
         return nil 
     end
 
 
     #割り当て済みのエージェントを除き、ノードの状態を初期化する
     def resetFlood
-        puts "\nReset"
         (([].concat @robots).concat @positions).each do |n|
             n.visited = false
             n.previous = nil
         end
         (@robots - @matchedRobots).each do |a|
-            flood(a, nil);
+            print "can match? : "
+            puts a 
+            p = flood(a, nil);
+            unless p.nil? 
+                return p
+            end
         end
+        return nil
     end
 
 
     def reversePath(node)
+        puts "Matched!"
         while node.previous != nil do
             @allowedEdges.select do |e|
                 #e.start == node && e.end == node.previous
                 e.end == node && e.start == node.previous
             end.each do |e|
                 e.reverseDirection
+                if e.start.class == Position
+                    puts e
+                end
             end
             node = node.previous
         end
         return node
     end
 
-
-
     def calc
-        #コストの小さい順にソートされたタスク割当の配列
+        puts "---------------------"
+        puts "-----Algorithm4------"
+        puts "---------------------\n"
+        #コストの昇順にソートされたタスク割当の配列
         edgeQ = @edges.sort do |e1,e2|
-            (e2.distance) <=> (e1.distance)
+            (e1.distance) <=> (e2.distance)
         end
-        #最もコストの掛かるタスク割当
+        #最も大きい距離を持つ割当
         #これを順々に大きくしていくことで、割当を進めていく
         longestEdge = nil
 
         #全ての割当が終わるまでループ
         (1..(@robots.length)).each do 
-            resetFlood()
             matchedPosition = nil
             while matchedPosition.nil? do
-                longestEdge = edgeQ.pop
-                @allowedEdges.push longestEdge
-                print "\npath : "
+                longestEdge = edgeQ.shift
+                print "\nadd longestEdge : "
                 puts longestEdge
-                matchedPosition = flood(longestEdge.end,longestEdge.start)
+                @allowedEdges << longestEdge
+                matchedPosition = resetFlood()
             end
             matchedRobot = reversePath matchedPosition
-            puts Edge.new(matchedRobot , matchedPosition)
             @matchedRobots.push matchedRobot
         end
-        puts "\nallowed edges\n"
-        puts @allowedEdges
+        puts "\n\nMatched Pathes"
+        puts @allowedEdges.select{|e|e.start.class == Position}.map{|e|e.clone.reverseDirection}
+        puts "\n\nLongest Edge"
+        puts longestEdge
+        puts "\n\n"
+        
         return longestEdge 
     end
 end 
 
 
-
-#定数群
-robots = [2,3,100].map {|x| Agent.new x}
-positions = [0,1,-1].map {|x| Position.new x}
-algorithm4 = Algorithm4.new(robots,positions)
-puts algorithm4.calc
+####test algorithm4###
+#robots = [[1,1],[0,1],[4,0],[6,0],[0,2],[3,2]].map{|e|Point.new(e[0],e[1])}.map{|e|Agent.new e}
+#positions = [[0,0],[1,0],[4,2],[5,2],[6,2],[5,1]].map{|e|Point.new(e[0],e[1])}.map{|e|Position.new e}
+#algorithm4 = Algorithm4.new(robots,positions)
+#algorithm4.calc
+#
