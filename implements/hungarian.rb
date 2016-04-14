@@ -208,7 +208,7 @@ class Hungarian
         matrix = matrix.map{|e| e - min}
         puts "subtruction : -" << min.to_s
         puts matrix
-        matrix = matrix.zipWith(matrixOrigin){|x,y| x || y}.zipWith(delTimes){|x,t| t == 2 ? x + min : x} 
+        matrix = matrix.zipWith(matrixOrigin){|x,y| x || y}
         puts "restoration" 
         puts matrix
         matrix = matrix.zipWith(delTimes){|x,t| t == 2 ? x + min : x} 

@@ -13,6 +13,8 @@ module Test
     #POSITIONS = [3,5,2,7,13,3,-3,-11,-3,2].map{|e|Position.new e}
     ROBOTS = [[1,1],[0,1],[4,0],[6,0],[0,2],[3,2]].map{|e|Point.new(e[0],e[1])}.map{|e|Agent.new e}
     POSITIONS = [[0,0],[1,0],[4,2],[5,2],[6,2],[5,1]].map{|e|Point.new(e[0],e[1])}.map{|e|Position.new e}
+    #ROBOTS = [[3,1,5],[7,2,0],[8,1,6],[5,0,3]].map{|e|Point3.new(e[0],e[1],e[2])}.map{|e|Agent.new e}
+    #POSITIONS = [[2,8,3],[6,3,3],[9,3,0],[3,2,1]].map{|e|Point3.new(e[0],e[1],e[2])}.map{|e|Position.new e}
 
     def self.algorithm2
         puts "-------Test Algorithm 2-------"
@@ -49,7 +51,7 @@ module Test
 end
 
 #Test.algorithm2
-Test.algorithm3
+#Test.algorithm3
 #Test.algorithm4
 #Test.algorithm5
 #Test.hungarian
